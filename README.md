@@ -1,0 +1,2 @@
+# Auto2pickChoicer
+シャドウバースの2pickのデッキ作成を自動で行うプログラム
