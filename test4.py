@@ -9,7 +9,7 @@ craft_path = 'E/'
 neutral_path = 'Ne/'
 img_card_pool = {}
 
-json_open = open('json_ja/all.json', 'r', encoding='utf-8')
+json_open = open('json/all.json', 'r', encoding='utf-8')
 json_cards = json.load(json_open)
 cards = json_cards['cards']
 # print(cards)
@@ -22,7 +22,7 @@ for pack in range(latest_pack, latest_pack-4, -1):
         glob(pack_path+neutral_path+'*')
     for img_path in imgs_path:
         img_card = cv2.imread(img_path)
-        img_card_pool[img_path[-13:-5]] = img_card[170:560, 110:420]
+        img_card_pool[img_path[-13:-4]] = img_card[170:560, 110:420]
 
 # ベーシックカードをカードプールに追加
 imgs_path = glob('pictures/cards/100/'+craft_path+'*') + \
@@ -34,16 +34,18 @@ for img_path in imgs_path:
 
 # print(img_card_pool)
 # exit()
+i=0
 for key, value in img_card_pool.items():
     result = cv2.matchTemplate(pick_screen, value, cv2.TM_CCORR_NORMED)
     minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(result)
     if maxVal > 0.8:
-        for card in cards:
-            com = str(card['card_id'])
-            if key == com:
-                print(card['card_name'])
-                cv2.imshow(key,value)
-                cv2.waitKey(0)
+        i+=1
+        # for card in cards:
+        #     com = str(card['card_id'])
+        #     if key == com:
+        #         print(card['card_name'])
+        #         cv2.imshow(key,value)
+        #         cv2.waitKey(0)
         # tl = maxLoc[0], maxLoc[1]
         # br = maxLoc[0] + value.shape[1], maxLoc[1] + \
         #     value.shape[0]
@@ -51,3 +53,4 @@ for key, value in img_card_pool.items():
         # cv2.rectangle(dst, tl, br, color=(0, 255, 0), thickness=2)
         # cv2.imshow(key, dst)
         # cv2.waitKey(0)
+print(i)
