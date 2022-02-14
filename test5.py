@@ -3,7 +3,7 @@ import json
 import numpy as np
 from glob import glob
 
-screenshot = cv2.imread('pictures/pick/14.jpg')
+screenshot = cv2.imread('pictures/pick/0.jpg')
 candidated_cards = [None, None, None, None]
 candidated_cards[0] = screenshot[200:700, 0:500]
 candidated_cards[1] = screenshot[300:800, 300:800]
@@ -27,12 +27,9 @@ for pack in range(LATEST_PACK, BASIC_PACK-1, -1):
     img_paths = glob(pack_path+craft_path+'*') + \
         glob(pack_path+neutral_path+'*')
     for img_path in img_paths:
-        img = cv2.imread(img_path)
-        img = img[170:560, 110:420]
-        h, w = img.shape[:2]
-        width = round(w * (HEIGHT / h))
         img_card_pool[img_path[-13:-4]
-                      ] = cv2.resize(img, dsize=(width, HEIGHT))
+                      ] = cv2.imread(img_path)
+
     if pack == LATEST_PACK-4:
         pack = BASIC_PACK
 
