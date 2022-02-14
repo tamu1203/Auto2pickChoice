@@ -3,14 +3,15 @@ import json
 import numpy as np
 from glob import glob
 
-screenshot = cv2.imread('pictures/pick/4.jpg')
+screenshot = cv2.imread('pictures/pick/5.jpg')
 candidated_cards = [None, None, None, None]
 candidated_cards[0] = screenshot[200:700, 0:500]
 candidated_cards[1] = screenshot[300:800, 300:800]
 candidated_cards[2] = screenshot[300:800, 1100:1600]
 candidated_cards[3] = screenshot[200:700, 1400:1900]
-# エルフだった場合の処理
-latest_pack = 123
+
+LATEST_PACK = 123
+BASIC_PACK = 100
 craft_path = 'B/'
 neutral_path = 'Ne/'
 img_card_pool = {}
@@ -20,34 +21,27 @@ json_open = open('json/all.json', 'r', encoding='utf-8')
 json_cards = json.load(json_open)
 cards = json_cards['cards']
 
-# 最新4パックをカードプールに追加
-for pack in range(latest_pack, latest_pack-4, -1):
+# Create a card pool
+for pack in range(LATEST_PACK, BASIC_PACK-1, -1):
     pack_path = 'pictures/cards/'+str(pack)+'/'
     img_paths = glob(pack_path+craft_path+'*') + \
         glob(pack_path+neutral_path+'*')
     for img_path in img_paths:
-        img_card = cv2.imread(img_path)
-        img = img_card[170:560, 110:420]
+        img = cv2.imread(img_path)
+        img = img[170:560, 110:420]
         h, w = img.shape[:2]
         width = round(w * (HEIGHT / h))
         img_card_pool[img_path[-13:-4]
                       ] = cv2.resize(img, dsize=(width, HEIGHT))
-
-# ベーシックカードをカードプールに追加
-img_paths = glob('pictures/cards/100/'+craft_path+'*') + \
-    glob('pictures/cards/100/'+neutral_path+'*')
-for img_path in img_paths:
-    img_card = cv2.imread(img_path)
-    img = img_card[170:560, 110:420]
-    h, w = img.shape[:2]
-    width = round(w * (HEIGHT / h))
-    img_card_pool[img_path[-13:-4]] = cv2.resize(img, dsize=(width, HEIGHT))
+    if pack == LATEST_PACK-4:
+        pack == BASIC_PACK
 
 for candidated_card in candidated_cards:
     max_max_val = 0
     max_max_loc = []
     for card_id, card_img in img_card_pool.items():
-        result = cv2.matchTemplate(candidated_card, card_img, cv2.TM_CCORR_NORMED)
+        result = cv2.matchTemplate(
+            candidated_card, card_img, cv2.TM_CCORR_NORMED)
         _, max_val, _, max_loc = cv2.minMaxLoc(result)
         if max_val > max_max_val:
             max_max_val = max_val
