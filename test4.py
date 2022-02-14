@@ -34,7 +34,7 @@ for pack in range(LATEST_PACK, BASIC_PACK-1, -1):
         img_card_pool[img_path[-13:-4]
                       ] = cv2.resize(img, dsize=(width, HEIGHT))
     if pack == LATEST_PACK-4:
-        pack == BASIC_PACK
+        pack = BASIC_PACK
 
 for candidated_card in candidated_cards:
     max_max_val = 0
