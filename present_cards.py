@@ -1,9 +1,10 @@
 from calendar import c
 import cv2
 import json
+import pickle
 import numpy as np
 from glob import glob
-
+from tqdm import tqdm
 
 BASIC_PACK = 100
 LATEST_PACK = 123
@@ -17,6 +18,7 @@ ALL_CARD_IMG = {}
 for card in cards:
     ALL_CARD_IMG[str(card['card_id'])] = card
 AKAZE = cv2.AKAZE_create()
+ref_deses = pickle.load(open("pickle/descripter.pickle", mode="rb"))
 
 
 def get_trim_screens(screen):
@@ -41,7 +43,7 @@ def get_trim_screens(screen):
 
 def get_img(img_paths):
     card_pool_img = {}
-    for img_path in img_paths:
+    for img_path in tqdm(img_paths):
         img = cv2.imread(img_path)
         card_pool_img[img_path[-13:-4]] = img[170:560, 110:420]
     return card_pool_img
@@ -60,7 +62,6 @@ def get_card_pool(craft):
         craft_s_paths += (glob(pack_path+craft+'2*'))
         neutral_bsg_paths += glob(pack_path+'01*') + \
             glob(pack_path+'02*')+glob(pack_path+'03*')
-    print(type(high_rarity_paths))
     high_rarity = get_img(high_rarity_paths)
     craft_b = get_img(craft_b_paths)
     craft_s = get_img(craft_s_paths)
@@ -68,14 +69,20 @@ def get_card_pool(craft):
     return high_rarity, craft_b, craft_s, neutral_bsg
 
 
-def get_good(comp_img, ref_img):
-    gray_comp_img = cv2.cvtColor(
-        comp_img, cv2.COLOR_BGR2GRAY)
-    gray_ref_img = cv2.cvtColor(ref_img, cv2.COLOR_BGR2GRAY)
-    _, des1 = AKAZE.detectAndCompute(gray_comp_img, None)
-    _, des2 = AKAZE.detectAndCompute(gray_ref_img, None)
+def get_descriptor(img, card_id=None):
+    if card_id is not None:
+        des = ref_deses[card_id]
+    else:
+        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        _, des = AKAZE.detectAndCompute(gray_img, None)
+    return des
+
+
+def get_good(comp_img, ref_img, card_id=None):
+    comp_des = get_descriptor(comp_img)
+    ref_des = get_descriptor(ref_img, card_id)
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=False)
-    matches = bf.knnMatch(des1, des2, k=2)
+    matches = bf.knnMatch(comp_des, ref_des, k=2)
     ratio = 0.5
     good = []
     for m, n in matches:
@@ -91,7 +98,7 @@ def get_present_cards(screen, card_pool_img):
         max_good_len = 0
         present_card_id = ''
         for card_id, card_img in card_pool_img.items():
-            good = get_good(trim_screen, card_img)
+            good = get_good(trim_screen, card_img, card_id)
             if (good_len := len(good)) > max_good_len:
                 max_good_len = good_len
                 present_card_id = card_id
@@ -113,7 +120,7 @@ def main():
             present_cards = get_present_cards(screen, neutral_bsg)
 
         print(str(i)+'th screen----------------')
-        t=('st','nd','rd','th')
+        t = ('st', 'nd', 'rd', 'th')
         for i, present_card in enumerate(present_cards):
             print(str(i+1)+t[i]+' card : '+present_card['card_name'])
 
