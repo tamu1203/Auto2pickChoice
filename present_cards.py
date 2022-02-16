@@ -1,3 +1,4 @@
+from calendar import c
 import cv2
 import json
 import numpy as np
@@ -38,15 +39,33 @@ def get_trim_screens(screen):
     return trim_screens
 
 
-def get_card_pool_img(craft):
+def get_img(img_paths):
     card_pool_img = {}
-    for pack in [BASIC_PACK] + list(range(LATEST_PACK, LATEST_PACK-4, -1)):
-        img_paths = glob(CARDS_PATH+str(pack)+craft+'*') + \
-            glob(CARDS_PATH+str(pack)+'0*')
-        for img_path in img_paths:
-            img = cv2.imread(img_path)
-            card_pool_img[img_path[-13:-4]] = img[170:560, 110:420]
+    for img_path in img_paths:
+        img = cv2.imread(img_path)
+        card_pool_img[img_path[-13:-4]] = img[170:560, 110:420]
     return card_pool_img
+
+
+def get_card_pool(craft):
+    high_rarity_paths = []
+    craft_b_paths = []
+    craft_s_paths = []
+    neutral_bsg_paths = []
+    for pack in [BASIC_PACK] + list(range(LATEST_PACK, LATEST_PACK-4, -1)):
+        pack_path = CARDS_PATH+str(pack)
+        high_rarity_paths += glob(pack_path+craft+'3*')+glob(
+            pack_path+craft+'4*')+glob(pack_path+'0'+'4*')
+        craft_b_paths += (glob(pack_path+craft+'1*'))
+        craft_s_paths += (glob(pack_path+craft+'2*'))
+        neutral_bsg_paths += glob(pack_path+'01*') + \
+            glob(pack_path+'02*')+glob(pack_path+'03*')
+    print(type(high_rarity_paths))
+    high_rarity = get_img(high_rarity_paths)
+    craft_b = get_img(craft_b_paths)
+    craft_s = get_img(craft_s_paths)
+    neutral_bsg = get_img(neutral_bsg_paths)
+    return high_rarity, craft_b, craft_s, neutral_bsg
 
 
 def get_good(comp_img, ref_img):
@@ -64,10 +83,10 @@ def get_good(comp_img, ref_img):
             good.append(m)
     return good
 
-def get_present_cards(screen, craft):
+
+def get_present_cards(screen, card_pool_img):
     present_cards = []
     trim_screens = get_trim_screens(screen)
-    card_pool_img = get_card_pool_img(craft)
     for trim_screen in trim_screens:
         max_good_len = 0
         present_card_id = ''
@@ -81,10 +100,32 @@ def get_present_cards(screen, craft):
 
 
 def main():
-    screen = cv2.imread('pictures/pick/10.jpg')
-    present_cards = get_present_cards(screen, '7')
-    for i, present_card in enumerate(present_cards):
-        print(str(i+1)+'th card : '+present_card['card_name'])
+    high_rarity, craft_b, craft_s, neutral_bsg = get_card_pool('8')
+    # for card_id, card_img in neutral_bsg.items():
+    #     cv2.imshow(card_id, card_img)
+    #     cv2.moveWindow(card_id, 0, 0)
+    #     cv2.waitKey(0)
+    # exit()
+    for i in range(1,16):
+        screen = cv2.imread('pictures/pick/1_game/'+str(i-1)+'.jpg')
+        # if i==4:
+        #     cv2.imshow('', screen)
+        #     cv2.moveWindow(str(), 0, 0)
+        #     cv2.waitKey(0)
+        if i in (1, 8, 15):
+            present_cards = get_present_cards(screen, high_rarity)
+        elif i in (2, 4, 7, 9, 11, 13):
+            present_cards = get_present_cards(screen, craft_b)
+        elif i in (3, 6, 12, 14):
+            present_cards = get_present_cards(screen, craft_s)
+        else:
+            present_cards = get_present_cards(screen, neutral_bsg)
+
+        print(str(i)+'th----------------')
+        for i, present_card in enumerate(present_cards):
+            print(str(i+1)+'th card : '+present_card['card_name'])
+            # rarity = ['Bronze', 'Silver', 'Gold', 'Regend']
+            # print(rarity[present_card['rarity']-1])
 
 
 if __name__ == '__main__':
