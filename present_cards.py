@@ -101,17 +101,8 @@ def get_present_cards(screen, card_pool_img):
 
 def main():
     high_rarity, craft_b, craft_s, neutral_bsg = get_card_pool('8')
-    # for card_id, card_img in neutral_bsg.items():
-    #     cv2.imshow(card_id, card_img)
-    #     cv2.moveWindow(card_id, 0, 0)
-    #     cv2.waitKey(0)
-    # exit()
-    for i in range(1,16):
+    for i in range(1, 16):
         screen = cv2.imread('pictures/pick/1_game/'+str(i-1)+'.jpg')
-        # if i==4:
-        #     cv2.imshow('', screen)
-        #     cv2.moveWindow(str(), 0, 0)
-        #     cv2.waitKey(0)
         if i in (1, 8, 15):
             present_cards = get_present_cards(screen, high_rarity)
         elif i in (2, 4, 7, 9, 11, 13):
@@ -121,11 +112,10 @@ def main():
         else:
             present_cards = get_present_cards(screen, neutral_bsg)
 
-        print(str(i)+'th----------------')
+        print(str(i)+'th screen----------------')
+        t=('st','nd','rd','th')
         for i, present_card in enumerate(present_cards):
-            print(str(i+1)+'th card : '+present_card['card_name'])
-            # rarity = ['Bronze', 'Silver', 'Gold', 'Regend']
-            # print(rarity[present_card['rarity']-1])
+            print(str(i+1)+t[i]+' card : '+present_card['card_name'])
 
 
 if __name__ == '__main__':
