@@ -1,24 +1,24 @@
-from calendar import c
 import cv2
 import json
 import pickle
-import numpy as np
+import os
 from glob import glob
 from tqdm import tqdm
 
 BASIC_PACK = 100
 LATEST_PACK = 123
 RESIZE_WIDTH = 500
-CARDS_PATH = 'pictures\card_imgs\C_'
+CARDS_PATH = 'pictures\\card_imgs\\'
 
-json_open = open('json/all.json', 'r', encoding='utf-8')
+json_open = open('json_ja\\all.json', 'r', encoding='utf-8')
 json_cards = json.load(json_open)
 cards = json_cards['cards']
 ALL_CARD_IMG = {}
 for card in cards:
     ALL_CARD_IMG[str(card['card_id'])] = card
 AKAZE = cv2.AKAZE_create()
-ref_deses = pickle.load(open("pickle/descripter.pickle", mode="rb"))
+if os.path.isdir('pickle'):
+    ref_des = pickle.load(open('pickle\\descripter.pickle', mode="rb"))
 
 
 def get_trim_screens(screen):
@@ -50,16 +50,19 @@ def get_img(img_paths):
 
 
 def get_card_pool(craft):
+    crafts = {'forest': '1', 'sword': '2', 'rune': '3', 'dragon': '4',
+              'shadow': '5', 'blood': '6', 'haven': '7', 'portal': '8'}
+    craft_num = crafts[craft]
     high_rarity_paths = []
     craft_b_paths = []
     craft_s_paths = []
     neutral_bsg_paths = []
     for pack in [BASIC_PACK] + list(range(LATEST_PACK, LATEST_PACK-4, -1)):
-        pack_path = CARDS_PATH+str(pack)
-        high_rarity_paths += glob(pack_path+craft+'3*')+glob(
-            pack_path+craft+'4*')+glob(pack_path+'0'+'4*')
-        craft_b_paths += (glob(pack_path+craft+'1*'))
-        craft_s_paths += (glob(pack_path+craft+'2*'))
+        pack_path = CARDS_PATH+'C_'+str(pack)
+        high_rarity_paths += glob(pack_path+craft_num+'3*')+glob(
+            pack_path+craft_num+'4*')+glob(pack_path+'04*')
+        craft_b_paths += (glob(pack_path+craft_num+'1*'))
+        craft_s_paths += (glob(pack_path+craft_num+'2*'))
         neutral_bsg_paths += glob(pack_path+'01*') + \
             glob(pack_path+'02*')+glob(pack_path+'03*')
     high_rarity = get_img(high_rarity_paths)
@@ -71,7 +74,7 @@ def get_card_pool(craft):
 
 def get_descriptor(img, card_id=None):
     if card_id is not None:
-        des = ref_deses[card_id]
+        des = ref_des[card_id]
     else:
         gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         _, des = AKAZE.detectAndCompute(gray_img, None)
@@ -107,9 +110,9 @@ def get_present_cards(screen, card_pool_img):
 
 
 def main():
-    high_rarity, craft_b, craft_s, neutral_bsg = get_card_pool('8')
+    high_rarity, craft_b, craft_s, neutral_bsg = get_card_pool('portal')
     for i in range(1, 16):
-        screen = cv2.imread('pictures/pick/1_game/'+str(i-1)+'.jpg')
+        screen = cv2.imread('pictures/portal_craft/'+str(i)+'.jpg')
         if i in (1, 8, 15):
             present_cards = get_present_cards(screen, high_rarity)
         elif i in (2, 4, 7, 9, 11, 13):
@@ -119,7 +122,7 @@ def main():
         else:
             present_cards = get_present_cards(screen, neutral_bsg)
 
-        print(str(i)+'th screen----------------')
+        print(str(i)+'th screen')
         t = ('st', 'nd', 'rd', 'th')
         for i, present_card in enumerate(present_cards):
             print(str(i+1)+t[i]+' card : '+present_card['card_name'])
