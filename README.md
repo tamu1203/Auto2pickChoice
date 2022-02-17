@@ -9,6 +9,8 @@
 
 # DEMO
 以下の画面のカード情報(カード名・カードID・レアリティ・効果等)を取得できます。
+
+全サイズ対応です。
  ![Test Image 1](pictures/portal_craft/1.jpg)
 # Features
  
@@ -51,6 +53,8 @@ python present_cards.py
 
 # Note
  Usageは上から順に作業を行って下さい。
+ ## 実行環境
+ Python3.9.10
  
 # License
 "Auto2pickChoice" is under [MIT license](https://en.wikipedia.org/wiki/MIT_License).
