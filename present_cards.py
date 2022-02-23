@@ -51,7 +51,7 @@ def get_img(img_paths):
 
 def get_card_pool(craft):
     crafts = ['forest', 'sword', 'rune', 'dragon',
-              'shasow', 'blood', 'haven', 'portal']
+              'shadow', 'blood', 'haven', 'portal']
     craft_num = str(crafts.index(craft)+1)
     high_rarity_paths = []
     craft_b_paths = []
