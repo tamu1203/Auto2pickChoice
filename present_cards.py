@@ -4,6 +4,8 @@ import pickle
 import os
 from glob import glob
 from tqdm import tqdm
+from screenshot import sv_screenshot
+from dl_card_scores import dl_card_scores
 
 BASIC_PACK = 100
 LATEST_PACK = 123
@@ -41,35 +43,19 @@ def get_trim_screens(screen):
     return trim_screens
 
 
-def get_img(img_paths):
-    card_pool_img = {}
-    for img_path in tqdm(img_paths):
-        img = cv2.imread(img_path)
-        card_pool_img[img_path[-13:-4]] = img[170:560, 110:420]
-    return card_pool_img
-
-
-def get_card_pool(craft):
-    crafts = ['forest', 'sword', 'rune', 'dragon',
-              'shadow', 'blood', 'haven', 'portal']
-    craft_num = str(crafts.index(craft)+1)
-    high_rarity_paths = []
-    craft_b_paths = []
-    craft_s_paths = []
-    neutral_bsg_paths = []
+def get_card_pool(craft_num):
+    card_pool = {}
+    # crafts = ['forest', 'sword', 'rune', 'dragon',
+    #           'shadow', 'blood', 'haven', 'portal']
+    # craft_num = str(crafts.index(craft)+1)
+    img_paths = []
     for pack in [BASIC_PACK] + list(range(LATEST_PACK, LATEST_PACK-4, -1)):
         pack_path = CARDS_PATH+'C_'+str(pack)
-        high_rarity_paths += glob(pack_path+craft_num+'3*')+glob(
-            pack_path+craft_num+'4*')+glob(pack_path+'04*')
-        craft_b_paths.extend(glob(pack_path+craft_num+'1*'))
-        craft_s_paths.extend(glob(pack_path+craft_num+'2*'))
-        neutral_bsg_paths += glob(pack_path+'01*') + \
-            glob(pack_path+'02*')+glob(pack_path+'03*')
-    high_rarity = get_img(high_rarity_paths)
-    craft_b = get_img(craft_b_paths)
-    craft_s = get_img(craft_s_paths)
-    neutral_bsg = get_img(neutral_bsg_paths)
-    return high_rarity, craft_b, craft_s, neutral_bsg
+        img_paths += glob(pack_path+'0*')+glob(pack_path+str(craft_num+1)+'*')
+    for img_path in tqdm(img_paths):
+        img = cv2.imread(img_path)
+        card_pool[img_path[-13:-4]] = img[170:560, 110:420]
+    return card_pool
 
 
 def get_descriptor(img, card_id=None):
@@ -81,8 +67,7 @@ def get_descriptor(img, card_id=None):
     return des
 
 
-def get_good(comp_img, ref_img, card_id=None):
-    comp_des = get_descriptor(comp_img)
+def get_good(comp_des, ref_img, card_id=None):
     ref_des = get_descriptor(ref_img, card_id)
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=False)
     matches = bf.knnMatch(comp_des, ref_des, k=2)
@@ -94,14 +79,14 @@ def get_good(comp_img, ref_img, card_id=None):
     return good
 
 
-def get_present_cards(screen, card_pool_img):
+def get_present_cards(trim_screens, card_pool_img):
     present_cards = []
-    trim_screens = get_trim_screens(screen)
     for trim_screen in trim_screens:
         max_good_len = 0
         present_card_id = ''
+        comp_des = get_descriptor(trim_screen)
         for card_id, card_img in card_pool_img.items():
-            good = get_good(trim_screen, card_img, card_id)
+            good = get_good(comp_des, card_img, card_id)
             if (good_len := len(good)) > max_good_len:
                 max_good_len = good_len
                 present_card_id = card_id
@@ -110,22 +95,33 @@ def get_present_cards(screen, card_pool_img):
 
 
 def main():
-    high_rarity, craft_b, craft_s, neutral_bsg = get_card_pool('portal')
-    for i in range(1, 16):
-        screen = cv2.imread('pictures/portal_craft/'+str(i)+'.jpg')
-        if i in (1, 8, 15):
-            present_cards = get_present_cards(screen, high_rarity)
-        elif i in (2, 4, 7, 9, 11, 13):
-            present_cards = get_present_cards(screen, craft_b)
-        elif i in (3, 6, 12, 14):
-            present_cards = get_present_cards(screen, craft_s)
-        else:
-            present_cards = get_present_cards(screen, neutral_bsg)
+    print('forest:0,sword:1,rune:2,dragon:3,shadow:4,blood:5,haven:6,portal:7')
+    craft_num = int(input('input craft number>>> '))
+    card_pool = get_card_pool(craft_num)
+    card_scores = dl_card_scores(craft_num)
 
-        print(str(i)+'th screen')
-        t = ('st', 'nd', 'rd', 'th')
+    while True:
+        screen = sv_screenshot()
+        trim_screens = get_trim_screens(screen)
+        present_cards = get_present_cards(trim_screens, card_pool)
+        left, right = 0, 0
         for i, present_card in enumerate(present_cards):
-            print(str(i+1)+t[i]+' card : '+present_card['card_name'])
+            try:
+                card_score = card_scores[present_card['card_name']]
+            except KeyError:
+                card_score = 0
+            print(present_card['card_name'], card_score)
+            if i < 2:
+                left += card_score
+            else:
+                right += card_score
+        if right > left:
+            print('Choice right')
+        elif right < left:
+            print('Choice left')
+        else:
+            print('Choice free')
+        print(left, right)
 
 
 if __name__ == '__main__':
