@@ -22,8 +22,8 @@ def pil2cv(image):
 def sv_screenshot():
     while True:
         if keyboard.read_key() == 'space':
-            window = gw.getWindowsWithTitle('test.mp4')[0]
-            # window = gw.getWindowsWithTitle('Shadowverse')[0]
+            # window = gw.getWindowsWithTitle('test.mp4')[0]
+            window = gw.getWindowsWithTitle('Shadowverse')[0]
             x, y = window.topleft
             width, height = window.size
             # pag.screenshot('pictures\\test.png', region=(x, y, width, height))
