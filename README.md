@@ -33,7 +33,7 @@ forest:0,sword:1,rune:2,dragon:3,shadow:4,blood:5,haven:6,portal:7
 input craft number>>> 7
 ```
 次に、シャドウバースを起動し、以下の画面でスペースキーを押して下さい。
- ![Test Image 1](pictures/README.png)
+ ![Test Image 1](README.png)
  すると、以下のように、カード毎の評価値と左右それぞれの評価値の合計が出力されます。何度でも実行可能です。
  ```bash
 forest:0,sword:1,rune:2,dragon:3,shadow:4,blood:5,haven:6,portal:7
@@ -91,7 +91,7 @@ python present_cards.py
 # Note
  Usageは上から順に作業を行って下さい。
  マルチディスプレイ環境の場合は、シャドウバースはメインディスプレイに配置して下さい。
- 
+
  ## 実行環境
  Python 3.9.10
  
