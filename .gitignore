@@ -128,11 +128,10 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-pictures/card_imgs
+pictures/
 picture/pick
 json_ja/
 imgs/
 MEMO.md
 bk/
 pickle/
-gamewith/
