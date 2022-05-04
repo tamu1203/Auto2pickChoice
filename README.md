@@ -1,4 +1,5 @@
 # Auto2pickChoice
+※現在バグが発生しており、修正中
  シャドウバースの2pickのデッキ作成を自動化するプロジェクト。
 
  (シャドウバース公式サイト https://shadowverse.jp/)
